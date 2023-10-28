@@ -17,15 +17,15 @@ RUN apk add --no-cache \
 
 # Install google cloud cli and update components
 # the "storage" component is enabled by default
-RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-452.0.0-linux-x86_64.tar.gz \
-    && tar -xf google-cloud-cli-452.0.0-linux-x86_64.tar.gz \
+RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-452.0.1-linux-x86_64.tar.gz \
+    && tar -xf google-cloud-cli-452.0.1-linux-x86_64.tar.gz \
       -C /var/lib/ \
     && /var/lib/google-cloud-sdk/install.sh \
       --usage-reporting=false \
       --path-update=true \
       --quiet \
     && /var/lib/google-cloud-sdk/bin/gcloud components update \
-    && rm google-cloud-cli-452.0.0-linux-x86_64.tar.gz
+    && rm google-cloud-cli-452.0.1-linux-x86_64.tar.gz
 
 RUN rm -rf /var/cache/apk/*
 RUN mkdir -p /run/scripts
