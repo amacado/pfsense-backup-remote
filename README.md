@@ -1,12 +1,27 @@
-# daniel156161/pfsense-backup
+# amacado/pfsense-backup
 
 ## Short description
-Runs a lightweight Alpine container to backup PFSense.
+Runs a lightweight Alpine container to backup PFSense and push the backups to an remote location.
 
 ## Full details
 This image can be used to run a one-time backup of PFSense, or it can be configured to stay in the background and retrieve backups on a user-specified schedule.
+This has been tested to work against PFSense 2.7.0-RELEASE. It might stop working if PFSense changes something about how backups are completed.
+By default the backup will contain all the RRD data, if that is not desired see Parameters below.
 
-This has been tested to work against PFSense 2.3.3 and up to 2.4.5-RELEASE-p1 . It might stop working if PFSense changes something about how backups are completed. By default the backup will contain all the RRD data, if that is not desired see Parameters below.
+### Google Cloud credentials
+* Visit https://console.cloud.google.com/iam-admin/serviceaccounts?project=<YOUR-PROJECT> and make/download a key for one of the service accounts (or create new one)
+* Add required roles 
+  * Storage Object Creator (Allows users to create objects. Does not give permission to view, delete, or replace objects.)
+  * Storage Object Viewer (Grants access to view objects and their metadata, excluding ACLs. Can also list the objects in a bucket.)
+* Create and download an Access Key File (JSON) for the service account
+* Use file in mount for `/gcloud/config/service-account-credentials.json`
+  * `- "<path-to>/gcloud-xxx-yyyyy.json:/gcloud/config/service-account-credentials.json"`
+
+### GPG encryption
+The backup file is encrypted using a GPG key. For setup encryption follow:
+* Create a public/private GPG key pair
+* Provide the public key to as volume mount for `/gpg/config/gpg-public.asc`
+* Make sure you don't lose the private key or you will be unable to decrypt your backups
 
 ### Running
 #### One-time container
@@ -39,7 +54,7 @@ docker run --detach --volume $(pwd):/data --env PFSENSE_USER=backupuser --env PF
 - `keepfiles` . Optional. How many Files do you like to keep
 
 ### Crontab
-- can run custem Crontab Commands just put your command into the crontab.txt file
+- can run custom crontab commands just put your command into the crontab.txt file
 
 ## Help!
 - Is the username correct?
@@ -47,4 +62,4 @@ docker run --detach --volume $(pwd):/data --env PFSENSE_USER=backupuser --env PF
 - The container runs in the UTC timezone, so the cron schedule might be offset from what was expected when the TZ env is not set
 
 ## Credits
-forked from [zxjinn/pfsense-backup](https://github.com/zxjinn/pfsense-backup)
+forked from [daniel156161/pfsense-backup](https://github.com/daniel156161/pfsense-backup)

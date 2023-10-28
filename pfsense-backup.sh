@@ -1,6 +1,6 @@
 #!/bin/bash
-source "/scripts/borgBackup.sh"
-source "/scripts/functions.sh"
+source "/run/scripts/borgBackup.sh"
+source "/run/scripts/functions.sh"
 ##############################################################################################################################
 # Main Execution
 ##############################################################################################################################
@@ -18,8 +18,9 @@ check_borg_backup_vars
 check_pfSense_optional_vars
 
 # set up variables
-url=${PFSENSE_SCHEME}://${PFSENSE_IP}
-timestamp=$(date +%Y%m%d%H%M%S)
+url=${PFSENSE_SCHEME}://${PFSENSE_IP}:${PFSENSE_PORT}
+timestamp=$(date +%Y-%m-%d-%H-%M-%S)
+backupFilepath=${destination}/${timestamp}-${BACKUPNAME}.xml
 
 print_container_info
 
