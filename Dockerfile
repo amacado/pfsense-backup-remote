@@ -31,7 +31,6 @@ RUN rm -rf /var/cache/apk/*
 RUN mkdir -p /run/scripts
 
 COPY scripts/ /run/scripts
-COPY validation/ /run/validation
 COPY pfsense-backup.sh /run/pfsense-backup.sh
 
 RUN chmod 755 /run/pfsense-backup.sh
