@@ -164,10 +164,10 @@ function run_backups() {
 }
 
 function cleanup_old_backups_when_set() {
-  if [ ! -z $keepfiles ]; then
-    remove=$(ls -d -1tr $destination/*.xml | tail -n +$keepfiles | head -n1)
+  if [ ! -z $BACKUP_KEEP ]; then
+    remove=$(ls -d -1tr $destination/*.xml | tail -n +$BACKUP_KEEP | head -n1)
     if [ ! -z $remove ]; then
-      del=$(ls $destination/*.xml | head -n -$keepfiles)
+      del=$(ls $destination/*.xml | head -n -$BACKUP_KEEP)
       if [ ! -z $del ]; then
         rm -f $del
         echo "Backup removed at $del"
