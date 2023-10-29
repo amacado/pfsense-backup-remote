@@ -1,7 +1,8 @@
 ##############################################################################################################################
-# Funktionen
+# Function declarations
 ##############################################################################################################################
-function sepurator {
+
+function separator {
   echo "======================================================================================"
 }
 
@@ -12,7 +13,7 @@ function check_pfSense_vars_set() {
   if [ -z "$PFSENSE_USER" ]; then echo "Must provide PFSENSE_USER" ; errors=$(($errors + 1)); fi
   if [ -z "$PFSENSE_PASS" ]; then echo "Must provide PFSENSE_PASS" ; errors=$(($errors + 1)); fi
   if [ -z "$PFSENSE_SCHEME" ]; then echo "Must provide PFSENSE_SCHEME" ; errors=$(($errors + 1)); fi
-  if [ -z "$BACKUPNAME" ]; then BACKUPNAME=$PFSENSE_IP; fi
+  if [ -z "$BACKUP_NAME" ]; then BACKUP_NAME=$PFSENSE_IP; fi
 
   if [ $errors -ne 0 ]; then exit 1; fi
 }
@@ -35,18 +36,6 @@ function check_pfSense_optional_vars() {
   fi
 }
 
-function check_borg_backup_vars() {
-  local errors=0
-
-  if [ ! -z "$BORG_BACKUP_TRUE" ]; then
-    if [ -z "$BORG_REPO" ]; then echo "Musst provice BORG_REPO"; errors=$(($errors + 1)); fi
-    if [ -z "$BORG_CREATE_PARAMS" ]; then echo "Musst provice BORG_CREATE_PARAMS"; errors=$(($errors + 1)); fi
-    if [ -z "$BORG_PRUNE_PARAMS" ]; then echo "Musst provice BORG_PRUNE_PARAMS"; errors=$(($errors + 1)); fi
-  fi
-
-  if [ $errors -ne 0 ]; then exit 1; fi
-}
-
 function load_crontab_when_exists_or_create() {
   if [ -f "$destination/crontab.txt" ]; then
     echo "* Load Crontab $destination/crontab.txt"
@@ -56,7 +45,7 @@ function load_crontab_when_exists_or_create() {
     echo "$PFSENSE_CRON_SCHEDULE FROM_CRON=1 /run/pfsense-backup.sh" >> "$destination/crontab.txt"
     crontab "$destination/crontab.txt"
   fi
-  sepurator
+  separator
   crond -f
 }
 
@@ -108,7 +97,7 @@ function do_backup() {
   else
     echo "    * xml validation successful"
 
-    sepurator
+    separator
 
     echo "* Initiate local encryption of the backup file"
     echo "  * Importing public GPG key"
@@ -116,19 +105,22 @@ function do_backup() {
     echo "  * Encrypt backup using ${GPG_NAME}"
     gpg --no-tty --batch --encrypt --recipient ${GPG_NAME} ${backupFilepath}
 
-    sepurator
+    separator
 
     echo "* Prepare and upload encrypted backup to cloud storage"
     glcoud_auth
     /var/lib/google-cloud-sdk/bin/gcloud storage cp ${backupFilepath}.gpg gs://prv-backup-p-stg-euwe1-firewall-8e7c/
 
-    sepurator
+    separator
 
   fi
 
-  # Cleanup temporary files and unencrypted backup
+  # Cleanup temporary files and backup
+  # since it has been uploaded to remote
+  # it can be removed locally
   rm -rf ${destination}/tmp
   rm -rf ${backupFilepath}
+  rm -rf ${backupFilepath}.gpg
 }
 
 function import_gpg() {
@@ -148,39 +140,17 @@ function glcoud_auth() {
 }
 
 function run_backups() {
-  echo "* Running backups"
+  echo "* Running backup"
   do_backup
-  if [ ! -z "$BORG_BACKUP_TRUE" ]; then
-    BORG_CREATE_PARAMS=($BORG_CREATE_PARAMS)
-    BORG_PRUNE_PARAMS=($BORG_PRUNE_PARAMS)
-
-    create_borg_backup "$BACKUPNAME" "${backupFilepath}"
-    purge_borg_backup "$BACKUPNAME"
-    compact_borg_backup
-
-    rm "${backupFilepath}"
-  fi
-  sepurator
+  separator
 }
 
-function cleanup_old_backups_when_set() {
-  if [ ! -z $BACKUP_KEEP ]; then
-    remove=$(ls -d -1tr $destination/*.xml | tail -n +$BACKUP_KEEP | head -n1)
-    if [ ! -z $remove ]; then
-      del=$(ls $destination/*.xml | head -n -$BACKUP_KEEP)
-      if [ ! -z $del ]; then
-        rm -f $del
-        echo "Backup removed at $del"
-      fi
-    fi
-  fi
-}
 
 function print_container_info {
-  sepurator
-  echo "* Backup - Name: $BACKUPNAME"
-  sepurator
+  separator
+  echo "* Backup - Name: $BACKUP_NAME"
+  separator
   echo "* pfSense - Url: $url"
   echo "* pfSense - User: $PFSENSE_USER"
-  sepurator
+  separator
 }

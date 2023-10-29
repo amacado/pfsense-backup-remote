@@ -32,9 +32,14 @@ RUN mkdir -p /run/scripts
 
 COPY scripts/ /run/scripts
 COPY pfsense-backup.sh /run/pfsense-backup.sh
+COPY healthcheck.sh /run/healthcheck.sh
 
 RUN chmod 755 /run/pfsense-backup.sh
+RUN chmod 755 /run/healthcheck.sh
 
 VOLUME ["/data", "/gcloud/config/service-account-credentials.json", "/gpg/config/gpg-public.asc"]
+
+HEALTHCHECK --interval=5m --timeout=30s \
+  CMD /run/healthcheck.sh || exit 1
 
 CMD ["/run/pfsense-backup.sh"]
